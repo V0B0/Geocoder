@@ -49,7 +49,8 @@ public class GeocodeService {
         if (hasErrors) {
             return "Try again";
         } else {
-            return isCoordinate ? gettingPoint.getAddress() : gettingPoint.getCoordinates();
+            return "Found = "+(isCoordinate ? "place '"+gettingPoint.getAddress()+'\'' :
+                    "coordinates '"+gettingPoint.getCoordinates()+'\'');
         }
     }
 

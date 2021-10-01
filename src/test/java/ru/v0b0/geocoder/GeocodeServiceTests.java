@@ -18,21 +18,21 @@ public class GeocodeServiceTests {
     void test1(){
         Point point = new Point("Беларусь, Минск");
         String request = service.convert(point);
-        assertEquals("53.902284 27.561831", request);
+        assertEquals("Found = coordinates '53.902284 27.561831'", request);
     }
 
     @Test
     void test2(){
         Point point = new Point("Астана");
         String request = service.convert(point);
-        assertEquals("51.128207 71.43042", request);
+        assertEquals("Found = coordinates '51.128207 71.43042'", request);
     }
 
     @Test
     void test3(){
         Point point = new Point("Минск ленина 12");
         String request = service.convert(point);
-        assertEquals("53.900167 27.559055", request);
+        assertEquals("Found = coordinates '53.900167 27.559055'", request);
     }
 
     @Test
@@ -46,20 +46,20 @@ public class GeocodeServiceTests {
     void test5(){
         Point point = new Point("53.902284 27.561831");
         String request = service.convert(point);
-        assertEquals("Беларусь, Минск, проспект Независимости", request);
+        assertEquals("Found = place 'Беларусь, Минск, проспект Независимости'", request);
     }
 
     @Test
     void test6(){
         Point point = new Point("55.753605 37.621094");
         String request = service.convert(point);
-        assertEquals("Россия, Москва, Красная площадь", request);
+        assertEquals("Found = place 'Россия, Москва, Красная площадь'", request);
     }
 
     @Test
     void test7() {
         Point point = new Point("Vbycr");
         String request = service.convert(point);
-        assertEquals("53.902284 27.561831",request);
+        assertEquals("Found = coordinates '53.902284 27.561831'",request);
     }
 }
