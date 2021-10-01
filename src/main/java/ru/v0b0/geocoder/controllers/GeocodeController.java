@@ -33,8 +33,8 @@ public class GeocodeController {
     }
 
     @PostMapping("/")
-    public String geocode(Point point) {
-        service.sendRequest(point);
+    public String geocode(Point point, Model model) {
+        model.addAttribute("answer", service.convert(point));
         return "geocode";
     }
 }

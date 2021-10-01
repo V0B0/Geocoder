@@ -1,7 +1,6 @@
 package ru.v0b0.geocoder.services;
 
-import ru.v0b0.geocoder.entities.Point;
-import ru.v0b0.geocoder.data.PointsData;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -10,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+import ru.v0b0.geocoder.data.PointsData;
+import ru.v0b0.geocoder.entities.Point;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,41 +28,67 @@ public class GeocodeService {
 
     private final PointsData data;
 
+    private boolean isCoordinate;
+    private boolean hasErrors = false;
+
     public GeocodeService(PointsData data) {
         this.data = data;
     }
 
-    public Point sendRequest(Point point) {
-        Point gettingPoint = new Point();
-        try {
-            if (data.getData().containsKey(point.getRequest())) {
-                gettingPoint = data.getData().get(point.getRequest());
-            } else {
-                gettingPoint = getPointFromRequest(point.getRequest());
-                gettingPoint.setRequest(point.getRequest());
-                data.addPoint(point.getRequest(), gettingPoint);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public String convert(Point point) {
+        Point gettingPoint;
+        isCoordinate = isCoordinates(point.getRequest());
+        if (data.getData().containsKey(point.getRequest())) {
+            gettingPoint = data.getData().get(point.getRequest());
+            hasErrors = false;
+        } else {
+            gettingPoint = getPointFromRequest(point.getRequest());
+            gettingPoint.setRequest(point.getRequest());
+            data.addPoint(point.getRequest(), gettingPoint);
         }
-        return gettingPoint;
+        if (hasErrors) {
+            return "Try again";
+        } else {
+            return isCoordinate ? gettingPoint.getAddress() : gettingPoint.getCoordinates();
+        }
     }
 
-    private Point getPointFromRequest(String request) throws IOException {
-        request = request.replaceAll(" ", "%20");
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpGet httpGet = new HttpGet(URL + request);
-        HttpResponse httpResponse = httpClient.execute(httpGet);
-        BufferedReader reader = new BufferedReader(new InputStreamReader
-                (httpResponse.getEntity().getContent(), StandardCharsets.UTF_8));
-        if (httpResponse.getStatusLine().getStatusCode() == 200) {
-            return parseJSNOToPoint(readResponse(reader));
-        } else {
+    public boolean isCoordinates(String request) {
+        boolean answer = false;
+        request = request.replaceAll("[,]", "").trim();
+        if (request.split(" ").length == 2) {
+            answer = NumberUtils.isCreatable(request.split(" ")[0]) &&
+                    NumberUtils.isCreatable(request.split(" ")[1]);
+        }
+        return answer;
+    }
+
+    private Point getPointFromRequest(String request) {
+        request = request.replaceAll("[ ]", "%20");
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpGet httpGet;
+            if (isCoordinate) {
+                httpGet = new HttpGet(URL + request + "&sco=latlong");
+            } else {
+                httpGet = new HttpGet(URL + request);
+            }
+            HttpResponse httpResponse = httpClient.execute(httpGet);
+            BufferedReader reader = new BufferedReader(new InputStreamReader
+                    (httpResponse.getEntity().getContent(), StandardCharsets.UTF_8));
+            if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                hasErrors = false;
+                return parseJSNOToPoint(readResponse(reader));
+            } else {
+                throw new IOException("StatusCode != 200");
+            }
+        } catch (IOException e) {
+            hasErrors = true;
             return new Point("", "");
         }
     }
 
-    private Point parseJSNOToPoint(JSONObject jsonObject) {
+    private Point parseJSNOToPoint(JSONObject jsonObject) throws IOException {
         Point point = new Point();
         JSONArray jsonArray = jsonObject.getJSONObject("response").getJSONObject("GeoObjectCollection")
                 .getJSONArray("featureMember");
@@ -69,7 +96,11 @@ public class GeocodeService {
             JSONObject geoObject = jsonArray.getJSONObject(0).getJSONObject("GeoObject");
             point.setAddress(geoObject.getJSONObject("metaDataProperty")
                     .getJSONObject("GeocoderMetaData").getString("text"));
-            point.setCoordinates(geoObject.getJSONObject("Point").getString("pos"));
+            String coordinates = geoObject.getJSONObject("Point").getString("pos");
+            coordinates = coordinates.split(" ")[1] + ' ' + coordinates.split(" ")[0];
+            point.setCoordinates(coordinates);
+        } else {
+            throw new IOException();
         }
         return point;
     }

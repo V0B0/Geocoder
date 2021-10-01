@@ -17,63 +17,49 @@ public class GeocodeServiceTests {
     @Test
     void test1(){
         Point point = new Point("Беларусь, Минск");
-        Point request = service.sendRequest(point);
-
-        assertEquals("Беларусь, Минск", request.getAddress());
-        assertEquals("27.561831 53.902284", request.getCoordinates());
+        String request = service.convert(point);
+        assertEquals("53.902284 27.561831", request);
     }
 
     @Test
     void test2(){
         Point point = new Point("Астана");
-        Point request = service.sendRequest(point);
-
-        assertEquals("Казахстан, Нур-Султан (Астана)", request.getAddress());
-        assertEquals("71.43042 51.128207", request.getCoordinates());
+        String request = service.convert(point);
+        assertEquals("51.128207 71.43042", request);
     }
 
     @Test
     void test3(){
         Point point = new Point("Минск ленина 12");
-        Point request = service.sendRequest(point);
-
-        assertEquals("Беларусь, Минск, улица Ленина, 12", request.getAddress());
-        assertEquals("27.559055 53.900167", request.getCoordinates());
+        String request = service.convert(point);
+        assertEquals("53.900167 27.559055", request);
     }
 
     @Test
     void test4(){
         Point point = new Point("");
-        Point request = service.sendRequest(point);
-
-        assertEquals("", request.getAddress());
-        assertEquals("", request.getCoordinates());
+        String request = service.convert(point);
+        assertEquals("Try again", request);
     }
 
     @Test
     void test5(){
-        Point point = new Point("27.561831 53.902284");
-        Point request = service.sendRequest(point);
-
-        assertEquals("Беларусь, Минск, проспект Независимости", request.getAddress());
-        assertEquals("27.636158 53.930226", request.getCoordinates());
+        Point point = new Point("53.902284 27.561831");
+        String request = service.convert(point);
+        assertEquals("Беларусь, Минск, проспект Независимости", request);
     }
 
     @Test
     void test6(){
-        Point point = new Point("37.621094 55.753605");
-        Point request = service.sendRequest(point);
-
-        assertEquals("Россия, Москва, Красная площадь", request.getAddress());
-        assertEquals("37.621094 55.753605", request.getCoordinates());
+        Point point = new Point("55.753605 37.621094");
+        String request = service.convert(point);
+        assertEquals("Россия, Москва, Красная площадь", request);
     }
 
     @Test
     void test7() {
         Point point = new Point("Vbycr");
-        Point request = service.sendRequest(point);
-
-        assertEquals("Беларусь, Минск", request.getAddress());
-        assertEquals("27.561831 53.902284",request.getCoordinates());
+        String request = service.convert(point);
+        assertEquals("53.902284 27.561831",request);
     }
 }
